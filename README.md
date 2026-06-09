@@ -1,1 +1,1 @@
-# sample-fastapi
+# Sample FastAPI
