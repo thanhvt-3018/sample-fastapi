@@ -3,10 +3,10 @@ from __future__ import annotations
 from pydantic import BaseModel, EmailStr, Field
 
 
-class TokenResponse(BaseModel):
-    access_token: str
-    refresh_token: str
-    token_type: str = "bearer"
+class RegisterRequest(BaseModel):
+    email: EmailStr
+    full_name: str = Field(..., min_length=1, max_length=100)
+    password: str = Field(..., min_length=8)
 
 
 class LoginRequest(BaseModel):
@@ -14,9 +14,12 @@ class LoginRequest(BaseModel):
     password: str
 
 
+class TokenResponse(BaseModel):
+    """Response with access token only. Refresh token is set as HttpOnly cookie."""
+    access_token: str
+    token_type: str = "bearer"
+
+
 class RefreshRequest(BaseModel):
-    refresh_token: str
-
-
-class LogoutRequest(BaseModel):
-    refresh_token: str = Field(..., description="The refresh token to revoke")
+    """Empty request - refresh token comes from HttpOnly cookie."""
+    pass
