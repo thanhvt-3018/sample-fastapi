@@ -4,6 +4,7 @@ from datetime import timedelta
 
 # Sử dụng aioredis để hỗ trợ Redis bất đồng bộ, phù hợp với FastAPI, giúp cải thiện hiệu suất khi làm việc với Redis trong các endpoint async
 import redis.asyncio as aioredis
+import hashlib
 
 from app.core.config import settings
 
@@ -32,9 +33,11 @@ def get_redis() -> aioredis.Redis:
 
 
 async def revoke_token(token: str, ttl: timedelta) -> None:
-    await get_redis().setex(f"{REVOKED_PREFIX}{token}", int(ttl.total_seconds()), "")
+    token_hash = hashlib.sha256(token.encode("utf-8")).hexdigest()
+    await get_redis().setex(f"{REVOKED_PREFIX}{token_hash}", int(ttl.total_seconds()), "")
 
 
 async def is_token_revoked(token: str) -> bool:
-    result = await get_redis().exists(f"{REVOKED_PREFIX}{token}")
+    token_hash = hashlib.sha256(token.encode("utf-8")).hexdigest()
+    result = await get_redis().exists(f"{REVOKED_PREFIX}{token_hash}")
     return result == 1

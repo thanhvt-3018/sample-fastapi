@@ -15,11 +15,9 @@ class LoginRequest(BaseModel):
 
 
 class TokenResponse(BaseModel):
-    """Response with access token only. Refresh token is set as HttpOnly cookie."""
     access_token: str
     token_type: str = "bearer"
 
 
 class RefreshRequest(BaseModel):
-    """Empty request - refresh token comes from HttpOnly cookie."""
     pass

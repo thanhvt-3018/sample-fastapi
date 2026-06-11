@@ -1,6 +1,5 @@
 from __future__ import annotations
 
-import logging
 from datetime import timedelta
 
 from jose import JWTError
@@ -23,9 +22,7 @@ from app.core.security import (
     verify_password,
 )
 from app.repositories.user_repository import UserRepository
-from app.schemas.auth import LoginRequest, RegisterRequest, TokenResponse
-
-logger = logging.getLogger(__name__)
+from app.schemas.auth import LoginRequest, RegisterRequest
 
 
 class AuthService:
@@ -46,7 +43,6 @@ class AuthService:
             role=UserRole.MEMBER,
             is_active=True,
         )
-        logger.info("New user registered: id=%s email=%s", user.id, user.email)
 
         return {
             "access_token": create_access_token(user.id),
@@ -66,7 +62,6 @@ class AuthService:
                 code=ErrorCode.USER_INACTIVE,
             )
 
-        logger.info("User logged in: id=%s", user.id)
         return {
             "access_token": create_access_token(user.id),
             "refresh_token": create_refresh_token(user.id),
@@ -93,7 +88,13 @@ class AuthService:
                 code=ErrorCode.TOKEN_REVOKED,
             )
 
-        user_id = int(payload["sub"])
+        user_id_str = payload.get("sub")
+        if user_id_str is None:
+            raise UnauthorizedException(
+                message="Invalid token payload",
+                code=ErrorCode.INVALID_TOKEN,
+            )
+        user_id = int(user_id_str)
         user = await self._repo.get_by_id(user_id)
         if not user or not user.is_active:
             raise UnauthorizedException(
@@ -122,5 +123,3 @@ class AuthService:
             refresh_token,
             timedelta(days=settings.JWT_REFRESH_TOKEN_EXPIRE_DAYS),
         )
-
-        logger.info("User logged out: id=%s", user_id)

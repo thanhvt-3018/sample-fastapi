@@ -1,5 +1,6 @@
 from __future__ import annotations
 
+from datetime import datetime
 from typing import Any, Generic, TypeVar
 
 from sqlalchemy import func, select
@@ -17,17 +18,11 @@ class BaseRepository(Generic[ModelT]):
         self.session = session
 
     async def get_by_id(self, id: int) -> ModelT | None:
-        return await self.session.get(self.model, id)
-
-    async def get_all(self, *, offset: int = 0, limit: int = 20) -> list[ModelT]:
-        result = await self.session.execute(
-            select(self.model).offset(offset).limit(limit)
+        stmt = select(self.model).where(
+            (self.model.id == id) & (self.model.deleted_at.is_(None))
         )
-        return list(result.scalars().all())
-
-    async def count(self) -> int:
-        result = await self.session.execute(select(func.count()).select_from(self.model))
-        return result.scalar_one()
+        result = await self.session.execute(stmt)
+        return result.scalars().first()
 
     async def create(self, **kwargs: Any) -> ModelT:
         instance = self.model(**kwargs)
@@ -44,8 +39,9 @@ class BaseRepository(Generic[ModelT]):
         return instance
 
     async def delete(self, instance: ModelT) -> None:
-        self.session.delete(instance)
-        await self.session.flush()
+        if hasattr(instance, "deleted_at"):
+            setattr(instance, "deleted_at", datetime.now())
+            await self.session.flush()
 
     async def paginate(
         self,
@@ -54,8 +50,10 @@ class BaseRepository(Generic[ModelT]):
         limit: int = 20,
         **filters: Any,
     ) -> tuple[list[ModelT], int]:
-        stmt = select(self.model)
-        count_stmt = select(func.count()).select_from(self.model)
+        stmt = select(self.model).where(self.model.deleted_at.is_(None))
+        count_stmt = select(func.count()).select_from(self.model).where(
+            self.model.deleted_at.is_(None)
+        )
 
         for attr, value in filters.items():
             if value is None:

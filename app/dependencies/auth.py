@@ -1,7 +1,7 @@
 from __future__ import annotations
 
 from fastapi import Cookie, Depends
-from fastapi.security import OAuth2PasswordBearer
+from fastapi.security import HTTPBearer, HTTPAuthorizationCredentials
 from jose import JWTError
 from sqlalchemy.ext.asyncio import AsyncSession
 
@@ -14,7 +14,16 @@ from app.dependencies.database import get_db
 from app.models.user import User
 from app.repositories.user_repository import UserRepository
 
-oauth2_scheme = OAuth2PasswordBearer(tokenUrl="/api/v1/auth/login")
+http_bearer = HTTPBearer(description="JWT Bearer token", auto_error=False)
+
+
+async def get_token_from_bearer(credentials: HTTPAuthorizationCredentials | None = Depends(http_bearer)) -> str:
+    if credentials is None:
+        raise UnauthorizedException(
+            message="Authorization header missing",
+            code=ErrorCode.UNAUTHORIZED,
+        )
+    return credentials.credentials
 
 
 async def get_refresh_token_from_cookie(refresh_token: str | None = Cookie(None)) -> str:
@@ -27,7 +36,7 @@ async def get_refresh_token_from_cookie(refresh_token: str | None = Cookie(None)
 
 
 async def get_current_user(
-    token: str = Depends(oauth2_scheme),
+    token: str = Depends(get_token_from_bearer),
     session: AsyncSession = Depends(get_db),
 ) -> User:
     try:

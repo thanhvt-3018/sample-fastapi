@@ -10,7 +10,9 @@ FROM python:3.10-slim
 WORKDIR /app
 
 COPY --from=builder /install /usr/local
-COPY . .
+COPY alembic ./alembic
+COPY alembic.ini .
+COPY app ./app
 
 ENV PYTHONDONTWRITEBYTECODE=1 \
     PYTHONUNBUFFERED=1

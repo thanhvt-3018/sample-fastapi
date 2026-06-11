@@ -20,6 +20,14 @@ class ErrorCode:
     INVALID_PASSWORD = "INVALID_PASSWORD"
     WEAK_PASSWORD = "WEAK_PASSWORD"
 
+    WORKSPACE_NOT_FOUND = "WORKSPACE_NOT_FOUND"
+    PROJECT_NOT_FOUND = "PROJECT_NOT_FOUND"
+    MEMBER_NOT_FOUND = "MEMBER_NOT_FOUND"
+    MEMBER_ALREADY_EXISTS = "MEMBER_ALREADY_EXISTS"
+    NOT_WORKSPACE_OWNER = "NOT_WORKSPACE_OWNER"
+    NOT_PROJECT_OWNER = "NOT_PROJECT_OWNER"
+    CANNOT_REMOVE_OWNER = "CANNOT_REMOVE_OWNER"
+
 
 ERROR_MESSAGES = {
     ErrorCode.VALIDATION_ERROR: "Validation error occurred",
@@ -42,4 +50,12 @@ ERROR_MESSAGES = {
 
     ErrorCode.INVALID_PASSWORD: "Invalid current password",
     ErrorCode.WEAK_PASSWORD: "Password does not meet security requirements",
+
+    ErrorCode.WORKSPACE_NOT_FOUND: "Workspace not found",
+    ErrorCode.PROJECT_NOT_FOUND: "Project not found",
+    ErrorCode.MEMBER_NOT_FOUND: "Member not found in workspace",
+    ErrorCode.MEMBER_ALREADY_EXISTS: "User is already a member of this workspace",
+    ErrorCode.NOT_WORKSPACE_OWNER: "Only workspace owner can perform this action",
+    ErrorCode.NOT_PROJECT_OWNER: "Only project owner can perform this action",
+    ErrorCode.CANNOT_REMOVE_OWNER: "Cannot remove workspace owner",
 }
