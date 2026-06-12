@@ -8,31 +8,40 @@ from app.core.error_codes import ErrorCode
 from app.core.exceptions import ForbiddenException, NotFoundException
 from app.dependencies.auth import get_current_active_user
 from app.dependencies.database import get_db
-from app.models.project import Project
+from app.models.task import Task
 from app.models.user import User
 from app.models.workspace import Workspace, WorkspaceMember
 from app.repositories.project_repository import ProjectRepository
+from app.repositories.task_repository import TaskRepository
 
 
-async def get_project(
-    project_id: int,
+async def get_task(
+    task_id: int,
     session: AsyncSession = Depends(get_db),
-) -> Project:
-    project = await ProjectRepository(session).get_by_id(project_id)
-    if not project:
+) -> Task:
+    task = await TaskRepository(session).get_by_id(task_id)
+    if not task:
         raise NotFoundException(
-            message="Project not found",
-            code=ErrorCode.PROJECT_NOT_FOUND,
+            message="Task not found",
+            code=ErrorCode.TASK_NOT_FOUND,
         )
-    return project
+    return task
 
 
-async def get_project_in_workspace_member(
+async def get_task_in_workspace_member(
     workspace_id: int,
     project_id: int,
+    task_id: int,
     current_user: User = Depends(get_current_active_user),
     session: AsyncSession = Depends(get_db),
-) -> Project:
+) -> Task:
+    task = await TaskRepository(session).get_by_id(task_id)
+    if not task or task.project_id != project_id:
+        raise NotFoundException(
+            message="Task not found",
+            code=ErrorCode.TASK_NOT_FOUND,
+        )
+
     project = await ProjectRepository(session).get_by_id(project_id)
     if not project or project.workspace_id != workspace_id:
         raise NotFoundException(
@@ -48,10 +57,10 @@ async def get_project_in_workspace_member(
         )
 
     if workspace.owner_id == current_user.id:
-        return project
+        return task
     result = await session.execute(
         select(WorkspaceMember).where(
-            (WorkspaceMember.workspace_id == workspace_id)
+            (WorkspaceMember.workspace_id == workspace.id)
             & (WorkspaceMember.user_id == current_user.id)
             & (WorkspaceMember.deleted_at.is_(None))
         )
@@ -63,4 +72,4 @@ async def get_project_in_workspace_member(
             code=ErrorCode.INSUFFICIENT_PERMISSIONS,
         )
 
-    return project
+    return task
