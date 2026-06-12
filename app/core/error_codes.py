@@ -22,6 +22,7 @@ class ErrorCode:
 
     WORKSPACE_NOT_FOUND = "WORKSPACE_NOT_FOUND"
     PROJECT_NOT_FOUND = "PROJECT_NOT_FOUND"
+    TASK_NOT_FOUND = "TASK_NOT_FOUND"
     MEMBER_NOT_FOUND = "MEMBER_NOT_FOUND"
     MEMBER_ALREADY_EXISTS = "MEMBER_ALREADY_EXISTS"
     NOT_WORKSPACE_OWNER = "NOT_WORKSPACE_OWNER"
@@ -53,6 +54,7 @@ ERROR_MESSAGES = {
 
     ErrorCode.WORKSPACE_NOT_FOUND: "Workspace not found",
     ErrorCode.PROJECT_NOT_FOUND: "Project not found",
+    ErrorCode.TASK_NOT_FOUND: "Task not found",
     ErrorCode.MEMBER_NOT_FOUND: "Member not found in workspace",
     ErrorCode.MEMBER_ALREADY_EXISTS: "User is already a member of this workspace",
     ErrorCode.NOT_WORKSPACE_OWNER: "Only workspace owner can perform this action",
