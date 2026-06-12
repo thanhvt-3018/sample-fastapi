@@ -5,14 +5,14 @@ from typing import TYPE_CHECKING
 from sqlalchemy import ForeignKey, String
 from sqlalchemy.orm import Mapped, mapped_column, relationship
 
-from app.models.base import Base
+from app.models.base import Base, TimestampMixin
 
 if TYPE_CHECKING:
     from app.models.project import Project
     from app.models.task import Task
 
 
-class Label(Base):
+class Label(Base, TimestampMixin):
     __tablename__ = "labels"
 
     id: Mapped[int] = mapped_column(primary_key=True)

@@ -29,7 +29,7 @@ class Workspace(Base, TimestampMixin):
         back_populates="workspace", lazy="raise", cascade="all, delete-orphan")
 
 
-class WorkspaceMember(Base):
+class WorkspaceMember(Base, TimestampMixin):
     __tablename__ = "workspace_members"
 
     workspace_id: Mapped[int] = mapped_column(ForeignKey(

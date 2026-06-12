@@ -35,3 +35,7 @@ class WorkspaceMemberResponse(BaseModel):
     workspace_id: int
     user_id: int
     role: WorkspaceMemberRole
+
+
+class UpdateMemberRoleRequest(BaseModel):
+    role: WorkspaceMemberRole
