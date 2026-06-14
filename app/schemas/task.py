@@ -8,7 +8,6 @@ from app.core.enums import TaskPriority, TaskStatus
 
 
 class TaskCreate(BaseModel):
-    project_id: int
     title: str = Field(..., min_length=1, max_length=255)
     description: str | None = Field(default=None, max_length=2000)
     status: TaskStatus = TaskStatus.TODO
@@ -47,3 +46,4 @@ class TaskResponse(BaseModel):
     priority: TaskPriority
     due_date: date | None
     created_at: datetime
+    updated_at: datetime
