@@ -28,6 +28,8 @@ class ErrorCode:
     NOT_WORKSPACE_OWNER = "NOT_WORKSPACE_OWNER"
     NOT_PROJECT_OWNER = "NOT_PROJECT_OWNER"
     CANNOT_REMOVE_OWNER = "CANNOT_REMOVE_OWNER"
+    LABEL_NOT_FOUND = "LABEL_NOT_FOUND"
+    COMMENT_NOT_FOUND = "COMMENT_NOT_FOUND"
 
 
 ERROR_MESSAGES = {
@@ -60,4 +62,6 @@ ERROR_MESSAGES = {
     ErrorCode.NOT_WORKSPACE_OWNER: "Only workspace owner can perform this action",
     ErrorCode.NOT_PROJECT_OWNER: "Only project owner can perform this action",
     ErrorCode.CANNOT_REMOVE_OWNER: "Cannot remove workspace owner",
+    ErrorCode.LABEL_NOT_FOUND: "Label not found",
+    ErrorCode.COMMENT_NOT_FOUND: "Comment not found",
 }

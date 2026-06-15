@@ -2,7 +2,7 @@ from __future__ import annotations
 
 from datetime import date, datetime
 
-from pydantic import BaseModel, ConfigDict, Field
+from pydantic import BaseModel, ConfigDict, Field, model_validator
 
 from app.core.enums import TaskPriority, TaskStatus
 
@@ -45,5 +45,37 @@ class TaskResponse(BaseModel):
     status: TaskStatus
     priority: TaskPriority
     due_date: date | None
+    labels: list[str] = Field(default_factory=list)
     created_at: datetime
     updated_at: datetime
+
+    @model_validator(mode="before")
+    @classmethod
+    def extract_labels(cls, data):
+        if isinstance(data, dict):
+            return data
+
+        try:
+            labels_list = []
+            if hasattr(data, "labels"):
+                try:
+                    labels_list = [label.name for label in data.labels]
+                except Exception:
+                    labels_list = []
+
+            return {
+                "id": data.id,
+                "project_id": data.project_id,
+                "assignee_id": data.assignee_id,
+                "created_by": data.created_by,
+                "title": data.title,
+                "description": data.description,
+                "status": data.status,
+                "priority": data.priority,
+                "due_date": data.due_date,
+                "created_at": data.created_at,
+                "updated_at": data.updated_at,
+                "labels": labels_list,
+            }
+        except Exception:
+            return data

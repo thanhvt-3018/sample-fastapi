@@ -16,6 +16,7 @@ from app.repositories.workspace_repository import (
     WorkspaceRepository,
     WorkspaceMemberRepository,
 )
+from app.schemas.common import PaginatedResponse
 from app.schemas.workspace import (
     InviteMemberRequest,
     WorkspaceMemberResponse,
@@ -48,16 +49,18 @@ class WorkspaceService:
             )
         return WorkspaceResponse.model_validate(workspace)
 
-    async def list(self, user_id: int, *, offset: int = 0, limit: int = 20) -> tuple[list[WorkspaceResponse], int]:
-        workspaces, total = await self._workspace_repo.paginate(
+    async def list(self, user_id: int, *, offset: int = 0, limit: int = 20) -> PaginatedResponse:
+        result = await self._workspace_repo.paginate(
             offset=offset,
             limit=limit,
             owner_id=user_id,
         )
 
-        return (
-            [WorkspaceResponse.model_validate(w) for w in workspaces],
-            total,
+        return PaginatedResponse(
+            items=[WorkspaceResponse.model_validate(w) for w in result.items],
+            total=result.total,
+            page=result.page,
+            limit=result.limit,
         )
 
     async def update(self, workspace: Workspace, data: WorkspaceUpdate) -> WorkspaceResponse:
@@ -148,7 +151,7 @@ class WorkspaceService:
         updated = await self._member_repo.update(member_obj, role=role)
         return WorkspaceMemberResponse.model_validate(updated)
 
-    async def get_members(self, workspace: Workspace, *, offset: int = 0, limit: int = 20) -> tuple[list[WorkspaceMemberResponse], int]:
+    async def get_members(self, workspace: Workspace, *, offset: int = 0, limit: int = 20) -> PaginatedResponse[WorkspaceMemberResponse]:
         query = select(WorkspaceMember).where(
             (WorkspaceMember.workspace_id == workspace.id)
             & (WorkspaceMember.deleted_at.is_(None))
@@ -165,7 +168,10 @@ class WorkspaceService:
         result = await self.session.execute(query)
         members = list(result.scalars().all())
 
-        return (
-            [WorkspaceMemberResponse.model_validate(m) for m in members],
-            total,
+        page = offset // limit + 1 if limit > 0 else 1
+        return PaginatedResponse(
+            items=[WorkspaceMemberResponse.model_validate(m) for m in members],
+            total=total,
+            page=page,
+            limit=limit,
         )
