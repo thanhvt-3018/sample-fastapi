@@ -11,6 +11,9 @@ from app.core.exceptions import (
     NotFoundException,
 )
 from app.models.workspace import Workspace, WorkspaceMember
+from app.repositories.label_repository import LabelRepository
+from app.repositories.project_repository import ProjectRepository
+from app.repositories.task_repository import TaskRepository
 from app.repositories.user_repository import UserRepository
 from app.repositories.workspace_repository import (
     WorkspaceRepository,
@@ -31,6 +34,9 @@ class WorkspaceService:
         self._workspace_repo = WorkspaceRepository(session)
         self._member_repo = WorkspaceMemberRepository(session)
         self._user_repo = UserRepository(session)
+        self._project_repo = ProjectRepository(session)
+        self._task_repo = TaskRepository(session)
+        self._label_repo = LabelRepository(session)
         self.session = session
 
     async def create(self, user_id: int, data: WorkspaceCreate) -> WorkspaceResponse:
@@ -49,9 +55,9 @@ class WorkspaceService:
             )
         return WorkspaceResponse.model_validate(workspace)
 
-    async def list(self, user_id: int, *, offset: int = 0, limit: int = 20) -> PaginatedResponse:
+    async def list(self, user_id: int, *, page: int = 1, limit: int = 20) -> PaginatedResponse:
         result = await self._workspace_repo.paginate(
-            offset=offset,
+            page=page,
             limit=limit,
             owner_id=user_id,
         )
@@ -72,6 +78,7 @@ class WorkspaceService:
 
     async def delete(self, workspace: Workspace) -> None:
         await self._workspace_repo.delete(workspace)
+        await self.session.commit()
 
     async def invite_member(
         self,
@@ -127,6 +134,7 @@ class WorkspaceService:
             )
 
         await self._member_repo.delete(member_obj)
+        await self.session.commit()
 
     async def update_member_role(
         self,
@@ -151,7 +159,7 @@ class WorkspaceService:
         updated = await self._member_repo.update(member_obj, role=role)
         return WorkspaceMemberResponse.model_validate(updated)
 
-    async def get_members(self, workspace: Workspace, *, offset: int = 0, limit: int = 20) -> PaginatedResponse[WorkspaceMemberResponse]:
+    async def get_members(self, workspace: Workspace, *, page: int = 1, limit: int = 20) -> PaginatedResponse[WorkspaceMemberResponse]:
         query = select(WorkspaceMember).where(
             (WorkspaceMember.workspace_id == workspace.id)
             & (WorkspaceMember.deleted_at.is_(None))
@@ -164,11 +172,11 @@ class WorkspaceService:
         count_result = await self.session.execute(count_query)
         total = count_result.scalar()
 
+        offset = (page - 1) * limit
         query = query.offset(offset).limit(limit)
         result = await self.session.execute(query)
         members = list(result.scalars().all())
 
-        page = offset // limit + 1 if limit > 0 else 1
         return PaginatedResponse(
             items=[WorkspaceMemberResponse.model_validate(m) for m in members],
             total=total,

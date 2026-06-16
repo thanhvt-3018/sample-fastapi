@@ -4,7 +4,9 @@ from sqlalchemy.ext.asyncio import AsyncSession
 
 from app.core.enums import ProjectStatus
 from app.models.project import Project
+from app.repositories.label_repository import LabelRepository
 from app.repositories.project_repository import ProjectRepository
+from app.repositories.task_repository import TaskRepository
 from app.repositories.workspace_repository import WorkspaceRepository
 from app.schemas.common import PaginatedResponse
 from app.schemas.project import ProjectCreate, ProjectResponse, ProjectUpdate
@@ -14,6 +16,8 @@ class ProjectService:
     def __init__(self, session: AsyncSession) -> None:
         self._project_repo = ProjectRepository(session)
         self._workspace_repo = WorkspaceRepository(session)
+        self._task_repo = TaskRepository(session)
+        self._label_repo = LabelRepository(session)
         self.session = session
 
     async def create(self, workspace_id: int, data: ProjectCreate) -> ProjectResponse:
@@ -28,9 +32,9 @@ class ProjectService:
     async def get(self, project: Project) -> ProjectResponse:
         return ProjectResponse.model_validate(project)
 
-    async def list(self, workspace_id: int, *, offset: int = 0, limit: int = 20) -> PaginatedResponse:
+    async def list(self, workspace_id: int, *, page: int = 1, limit: int = 20) -> PaginatedResponse:
         result = await self._project_repo.paginate(
-            offset=offset,
+            page=page,
             limit=limit,
             workspace_id=workspace_id,
         )
@@ -50,6 +54,7 @@ class ProjectService:
 
     async def delete(self, project: Project) -> None:
         await self._project_repo.delete(project)
+        await self.session.commit()
 
     async def archive(self, project: Project) -> ProjectResponse:
         updated = await self._project_repo.update(project, status=ProjectStatus.ARCHIVED)

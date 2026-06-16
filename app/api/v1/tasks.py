@@ -46,13 +46,13 @@ async def get_task(
 async def list_tasks(
     workspace_id: int,
     project_id: int,
-    offset: int = 0,
+    page: int = 1,
     limit: int = 20,
     project: Project = Depends(get_project_in_workspace_member),
     session: AsyncSession = Depends(get_db),
 ) -> PaginatedResponse[TaskResponse]:
     return await TaskService(session).list(
-        project_id, offset=offset, limit=limit
+        project_id, page=page, limit=limit
     )
 
 
@@ -73,6 +73,7 @@ async def delete_task(
     workspace_id: int,
     project_id: int,
     task_id: int,
+    current_user: User = Depends(get_current_active_user),
     task: Task = Depends(get_task_in_workspace_member),
     session: AsyncSession = Depends(get_db),
 ) -> None:
@@ -122,6 +123,7 @@ async def remove_comment_from_task(
     project_id: int,
     task_id: int,
     comment_id: int,
+    current_user: User = Depends(get_current_active_user),
     task: Task = Depends(get_task_in_workspace_member),
     session: AsyncSession = Depends(get_db),
 ) -> None:

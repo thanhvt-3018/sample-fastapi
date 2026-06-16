@@ -28,6 +28,6 @@ class Project(Base, TimestampMixin):
     workspace: Mapped[Workspace] = relationship(
         back_populates="projects", lazy="raise")
     tasks: Mapped[list[Task]] = relationship(
-        back_populates="project", lazy="raise", cascade="all, delete-orphan")
+        back_populates="project", lazy="raise")
     labels: Mapped[list[Label]] = relationship(
-        back_populates="project", lazy="raise", cascade="all, delete-orphan")
+        back_populates="project", lazy="raise")

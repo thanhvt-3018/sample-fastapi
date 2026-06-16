@@ -31,7 +31,7 @@ class Task(Base, TimestampMixin):
 
     id: Mapped[int] = mapped_column(primary_key=True)
     project_id: Mapped[int] = mapped_column(ForeignKey(
-        "projects.id", ondelete="CASCADE"), nullable=False, index=True)
+        "projects.id"), nullable=False, index=True)
     assignee_id: Mapped[int | None] = mapped_column(ForeignKey(
         "users.id", ondelete="SET NULL"), nullable=True, index=True)
     created_by: Mapped[int] = mapped_column(ForeignKey(
@@ -53,4 +53,4 @@ class Task(Base, TimestampMixin):
     labels: Mapped[list[Label]] = relationship(
         secondary=task_labels, back_populates="tasks", lazy="raise")
     comments: Mapped[list[Comment]] = relationship(
-        back_populates="task", lazy="raise", cascade="all, delete-orphan")
+        back_populates="task", lazy="raise")

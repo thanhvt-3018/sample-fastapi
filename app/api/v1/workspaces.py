@@ -3,7 +3,6 @@ from __future__ import annotations
 from fastapi import APIRouter, Depends, status
 from sqlalchemy.ext.asyncio import AsyncSession
 
-from app.core.enums import WorkspaceMemberRole
 from app.dependencies.auth import get_current_active_user
 from app.dependencies.database import get_db
 from app.dependencies.workspace import get_workspace_owner, get_workspace_member
@@ -43,13 +42,13 @@ async def get_workspace(
 
 @router.get("", response_model=PaginatedResponse[WorkspaceResponse])
 async def list_workspaces(
-    offset: int = 0,
+    page: int = 1,
     limit: int = 20,
     current_user: User = Depends(get_current_active_user),
     session: AsyncSession = Depends(get_db),
 ) -> PaginatedResponse[WorkspaceResponse]:
     return await WorkspaceService(session).list(
-        current_user.id, offset=offset, limit=limit
+        current_user.id, page=page, limit=limit
     )
 
 
@@ -66,6 +65,7 @@ async def update_workspace(
 @router.delete("/{workspace_id}", status_code=status.HTTP_204_NO_CONTENT)
 async def delete_workspace(
     workspace_id: int,
+    current_user: User = Depends(get_current_active_user),
     workspace: Workspace = Depends(get_workspace_owner),
     session: AsyncSession = Depends(get_db),
 ) -> None:
@@ -86,6 +86,7 @@ async def invite_member(
 async def remove_member(
     workspace_id: int,
     user_id: int,
+    current_user: User = Depends(get_current_active_user),
     workspace: Workspace = Depends(get_workspace_owner),
     session: AsyncSession = Depends(get_db),
 ) -> None:
@@ -106,11 +107,11 @@ async def update_member_role(
 @router.get("/{workspace_id}/members", response_model=PaginatedResponse[WorkspaceMemberResponse])
 async def list_members(
     workspace_id: int,
-    offset: int = 0,
+    page: int = 1,
     limit: int = 20,
     workspace: Workspace = Depends(get_workspace_member),
     session: AsyncSession = Depends(get_db),
 ) -> PaginatedResponse[WorkspaceMemberResponse]:
     return await WorkspaceService(session).get_members(
-        workspace, offset=offset, limit=limit
+        workspace, page=page, limit=limit
     )

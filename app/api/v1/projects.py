@@ -3,10 +3,12 @@ from __future__ import annotations
 from fastapi import APIRouter, Depends, status
 from sqlalchemy.ext.asyncio import AsyncSession
 
+from app.dependencies.auth import get_current_active_user
 from app.dependencies.database import get_db
 from app.dependencies.project import get_project_in_workspace_member
 from app.dependencies.workspace import get_workspace_member
 from app.models.project import Project
+from app.models.user import User
 from app.schemas.common import PaginatedResponse
 from app.schemas.project import ProjectCreate, ProjectResponse, ProjectUpdate
 from app.services.project_service import ProjectService
@@ -26,7 +28,7 @@ async def create_project(
 
 
 @router.get("/{project_id}", response_model=ProjectResponse)
-async def get_project_endpoint(
+async def get_project(
     workspace_id: int,
     project_id: int,
     project: Project = Depends(get_project_in_workspace_member),
@@ -38,13 +40,13 @@ async def get_project_endpoint(
 @router.get("", response_model=PaginatedResponse[ProjectResponse])
 async def list_projects(
     workspace_id: int,
-    offset: int = 0,
+    page: int = 1,
     limit: int = 20,
     workspace=Depends(get_workspace_member),
     session: AsyncSession = Depends(get_db),
 ) -> PaginatedResponse[ProjectResponse]:
     return await ProjectService(session).list(
-        workspace_id, offset=offset, limit=limit
+        workspace_id, page=page, limit=limit
     )
 
 
@@ -63,6 +65,7 @@ async def update_project(
 async def delete_project(
     workspace_id: int,
     project_id: int,
+    current_user: User = Depends(get_current_active_user),
     project: Project = Depends(get_project_in_workspace_member),
     session: AsyncSession = Depends(get_db),
 ) -> None:

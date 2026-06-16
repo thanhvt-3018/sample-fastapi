@@ -20,12 +20,12 @@ class TaskRepository(BaseRepository[Task]):
         await self.session.refresh(instance, ["labels"])
         return instance
 
-    async def update(self, instance: Task, **kwargs: Any) -> Task:
-        for key, value in kwargs.items():
-            setattr(instance, key, value)
-        await self.session.flush()
-        await self.session.refresh(instance, ["labels"])
-        return instance
+    # async def update(self, instance: Task, **kwargs: Any) -> Task:
+    #     for key, value in kwargs.items():
+    #         setattr(instance, key, value)
+    #     await self.session.flush()
+    #     await self.session.refresh(instance, ["labels"])
+    #     return instance
 
     async def get_by_id(self, id: int):
         stmt = select(self.model).where(
