@@ -7,6 +7,7 @@ import redis.asyncio as aioredis
 import hashlib
 
 from app.core.config import settings
+from app.core.enums import TaskStatus, TaskPriority
 
 _redis: aioredis.Redis | None = None
 
@@ -41,3 +42,22 @@ async def is_token_revoked(token: str) -> bool:
     token_hash = hashlib.sha256(token.encode("utf-8")).hexdigest()
     result = await get_redis().exists(f"{REVOKED_PREFIX}{token_hash}")
     return result == 1
+
+
+def get_task_cache_key(
+    project_id: int,
+    page: int = 1,
+    limit: int = 20,
+    status: TaskStatus | None = None,
+    priority: TaskPriority | None = None,
+    assignee_id: int | None = None,
+) -> str:
+    return f"tasks:{project_id}:{page}:{limit}:{status}:{priority}:{assignee_id}"
+
+
+async def invalidate_project_task_cache(project_id: int) -> None:
+    redis = get_redis()
+    pattern = f"tasks:{project_id}:*"
+    keys = await redis.keys(pattern)
+    if keys:
+        await redis.delete(*keys)

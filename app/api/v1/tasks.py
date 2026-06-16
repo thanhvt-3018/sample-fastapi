@@ -1,5 +1,6 @@
 from __future__ import annotations
 
+import json
 from fastapi import APIRouter, Depends, status
 from sqlalchemy.ext.asyncio import AsyncSession
 
@@ -14,6 +15,7 @@ from app.schemas.comment import CommentCreate, CommentResponse
 from app.schemas.common import PaginatedResponse
 from app.schemas.task import TaskCreate, TaskResponse, TaskUpdate
 from app.core.enums import TaskStatus, TaskPriority
+from app.core.redis import get_redis, get_task_cache_key, invalidate_project_task_cache
 from app.services.task_service import TaskService
 
 router = APIRouter(
@@ -29,7 +31,9 @@ async def create_task(
     project: Project = Depends(get_project_in_workspace_member),
     session: AsyncSession = Depends(get_db),
 ) -> TaskResponse:
-    return await TaskService(session).create(project_id, current_user.id, data)
+    result = await TaskService(session).create(project_id, current_user.id, data)
+    await invalidate_project_task_cache(project_id)
+    return result
 
 
 @router.get("/{task_id}", response_model=TaskResponse)
@@ -55,10 +59,21 @@ async def list_tasks(
     project: Project = Depends(get_project_in_workspace_member),
     session: AsyncSession = Depends(get_db),
 ) -> PaginatedResponse[TaskResponse]:
-    return await TaskService(session).list(
+    cache_key = get_task_cache_key(
+        project_id, page, limit, status, priority, assignee_id)
+    redis = get_redis()
+
+    cached = await redis.get(cache_key)
+    if cached:
+        return PaginatedResponse.model_validate_json(cached)
+
+    result = await TaskService(session).list(
         project_id, page=page, limit=limit,
         status=status, priority=priority, assignee_id=assignee_id
     )
+
+    await redis.setex(cache_key, 3600, result.model_dump_json())
+    return result
 
 
 @router.patch("/{task_id}", response_model=TaskResponse)
@@ -70,7 +85,9 @@ async def update_task(
     task: Task = Depends(get_task_in_workspace_member),
     session: AsyncSession = Depends(get_db),
 ) -> TaskResponse:
-    return await TaskService(session).update(task, data)
+    result = await TaskService(session).update(task, data)
+    await invalidate_project_task_cache(project_id)
+    return result
 
 
 @router.delete("/{task_id}", status_code=status.HTTP_204_NO_CONTENT)
@@ -83,6 +100,7 @@ async def delete_task(
     session: AsyncSession = Depends(get_db),
 ) -> None:
     await TaskService(session).delete(task)
+    await invalidate_project_task_cache(project_id)
 
 
 @router.post("/{task_id}/labels/{label_id}", response_model=TaskResponse)
@@ -94,7 +112,9 @@ async def add_label_to_task(
     task: Task = Depends(get_task_in_workspace_member),
     session: AsyncSession = Depends(get_db),
 ) -> TaskResponse:
-    return await TaskService(session).add_label(task, label_id)
+    result = await TaskService(session).add_label(task, label_id)
+    await invalidate_project_task_cache(project_id)
+    return result
 
 
 @router.delete("/{task_id}/labels/{label_id}", response_model=TaskResponse)
@@ -106,7 +126,9 @@ async def remove_label_from_task(
     task: Task = Depends(get_task_in_workspace_member),
     session: AsyncSession = Depends(get_db),
 ) -> TaskResponse:
-    return await TaskService(session).remove_label(task, label_id)
+    result = await TaskService(session).remove_label(task, label_id)
+    await invalidate_project_task_cache(project_id)
+    return result
 
 
 @router.post("/{task_id}/comments", response_model=CommentResponse, status_code=status.HTTP_201_CREATED)
