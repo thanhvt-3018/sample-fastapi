@@ -46,9 +46,9 @@ class TaskService:
     async def get(self, task: Task) -> TaskResponse:
         return TaskResponse.model_validate(task)
 
-    async def list(self, project_id: int, *, offset: int = 0, limit: int = 20) -> PaginatedResponse:
+    async def list(self, project_id: int, *, page: int = 1, limit: int = 20) -> PaginatedResponse:
         result = await self._task_repo.paginate(
-            offset=offset,
+            page=page,
             limit=limit,
             project_id=project_id,
         )
@@ -75,6 +75,7 @@ class TaskService:
 
     async def delete(self, task: Task) -> None:
         await self._task_repo.delete(task)
+        await self.session.commit()
 
     async def add_label(self, task: Task, label_id: int) -> TaskResponse:
         label = await self._label_repo.get_by_id(label_id)
@@ -131,3 +132,4 @@ class TaskService:
                 code=ErrorCode.COMMENT_NOT_FOUND,
             )
         await self._comment_repo.delete(comment)
+        await self.session.commit()

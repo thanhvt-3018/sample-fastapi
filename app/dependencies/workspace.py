@@ -18,7 +18,10 @@ async def get_workspace_owner(
     current_user: User = Depends(get_current_active_user),
     session: AsyncSession = Depends(get_db),
 ) -> Workspace:
-    workspace = await WorkspaceRepository(session).get_by_id(workspace_id)
+    workspace = await WorkspaceRepository(session).get_one(
+        conditions={"id": workspace_id},
+        load=["projects", "members"]
+    )
     if not workspace:
         raise NotFoundException(
             message="Workspace not found",
@@ -39,7 +42,10 @@ async def get_workspace_member(
     current_user: User = Depends(get_current_active_user),
     session: AsyncSession = Depends(get_db),
 ) -> Workspace:
-    workspace = await WorkspaceRepository(session).get_by_id(workspace_id)
+    workspace = await WorkspaceRepository(session).get_one(
+        conditions={"id": workspace_id},
+        load=["projects", "members"]
+    )
     if not workspace:
         raise NotFoundException(
             message="Workspace not found",

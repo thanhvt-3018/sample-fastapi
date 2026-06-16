@@ -34,21 +34,20 @@ async def get_project_in_workspace_member(
     current_user: User = Depends(get_current_active_user),
     session: AsyncSession = Depends(get_db),
 ) -> Project:
-    project = await ProjectRepository(session).get_by_id(project_id)
-    if not project or project.workspace_id != workspace_id:
+    project = await ProjectRepository(session).get_one(
+        conditions={
+            "id": project_id,
+            "workspace_id": workspace_id,
+        },
+        load=["workspace", "tasks", "labels"]
+    )
+    if not project:
         raise NotFoundException(
             message=ERROR_MESSAGES[ErrorCode.PROJECT_NOT_FOUND],
             code=ErrorCode.PROJECT_NOT_FOUND,
         )
 
-    workspace = await WorkspaceRepository(session).get_by_id(workspace_id)
-    if not workspace:
-        raise NotFoundException(
-            message=ERROR_MESSAGES[ErrorCode.WORKSPACE_NOT_FOUND],
-            code=ErrorCode.WORKSPACE_NOT_FOUND,
-        )
-
-    if workspace.owner_id == current_user.id:
+    if project.workspace.owner_id == current_user.id:
         return project
     result = await session.execute(
         select(WorkspaceMember).where(

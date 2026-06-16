@@ -24,18 +24,18 @@ class Workspace(Base, TimestampMixin):
     owner: Mapped[User] = relationship(
         back_populates="owned_workspaces", lazy="raise")
     members: Mapped[list[WorkspaceMember]] = relationship(
-        back_populates="workspace", lazy="raise", cascade="all, delete-orphan")
+        back_populates="workspace", lazy="raise")
     projects: Mapped[list[Project]] = relationship(
-        back_populates="workspace", lazy="raise", cascade="all, delete-orphan")
+        back_populates="workspace", lazy="raise")
 
 
 class WorkspaceMember(Base, TimestampMixin):
     __tablename__ = "workspace_members"
 
     workspace_id: Mapped[int] = mapped_column(ForeignKey(
-        "workspaces.id", ondelete="CASCADE"), primary_key=True)
+        "workspaces.id"), primary_key=True)
     user_id: Mapped[int] = mapped_column(ForeignKey(
-        "users.id", ondelete="CASCADE"), primary_key=True)
+        "users.id"), primary_key=True)
     role: Mapped[WorkspaceMemberRole] = mapped_column(
         SAEnum(WorkspaceMemberRole, name="workspace_member_role", native_enum=False), nullable=False)
 

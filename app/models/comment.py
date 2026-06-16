@@ -17,7 +17,7 @@ class Comment(Base, TimestampMixin):
 
     id: Mapped[int] = mapped_column(primary_key=True)
     task_id: Mapped[int] = mapped_column(ForeignKey(
-        "tasks.id", ondelete="CASCADE"), nullable=False, index=True)
+        "tasks.id"), nullable=False, index=True)
     author_id: Mapped[int] = mapped_column(ForeignKey(
         "users.id", ondelete="RESTRICT"), nullable=False)
     content: Mapped[str] = mapped_column(Text, nullable=False)

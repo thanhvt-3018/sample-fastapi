@@ -17,7 +17,7 @@ class Label(Base, TimestampMixin):
 
     id: Mapped[int] = mapped_column(primary_key=True)
     project_id: Mapped[int] = mapped_column(ForeignKey(
-        "projects.id", ondelete="CASCADE"), nullable=False, index=True)
+        "projects.id"), nullable=False, index=True)
     name: Mapped[str] = mapped_column(String(50), nullable=False)
     color: Mapped[str] = mapped_column(String(7), nullable=False)
 
