@@ -7,6 +7,7 @@ from app.dependencies.database import get_db
 from app.dependencies.project import get_project_in_workspace_member
 from app.dependencies.workspace import get_workspace_member
 from app.models.project import Project
+from app.schemas.common import PaginatedResponse
 from app.schemas.project import ProjectCreate, ProjectResponse, ProjectUpdate
 from app.services.project_service import ProjectService
 
@@ -34,18 +35,17 @@ async def get_project_endpoint(
     return await ProjectService(session).get(project)
 
 
-@router.get("", response_model=list[ProjectResponse])
+@router.get("", response_model=PaginatedResponse[ProjectResponse])
 async def list_projects(
     workspace_id: int,
     offset: int = 0,
     limit: int = 20,
     workspace=Depends(get_workspace_member),
     session: AsyncSession = Depends(get_db),
-) -> list[ProjectResponse]:
-    projects, _ = await ProjectService(session).list(
+) -> PaginatedResponse[ProjectResponse]:
+    return await ProjectService(session).list(
         workspace_id, offset=offset, limit=limit
     )
-    return projects
 
 
 @router.patch("/{project_id}", response_model=ProjectResponse)

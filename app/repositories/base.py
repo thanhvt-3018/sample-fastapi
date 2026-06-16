@@ -7,6 +7,7 @@ from sqlalchemy import func, select
 from sqlalchemy.ext.asyncio import AsyncSession
 
 from app.models.base import Base
+from app.schemas.common import PaginatedResponse
 
 ModelT = TypeVar("ModelT", bound=Base)
 
@@ -49,7 +50,7 @@ class BaseRepository(Generic[ModelT]):
         offset: int = 0,
         limit: int = 20,
         **filters: Any,
-    ) -> tuple[list[ModelT], int]:
+    ) -> PaginatedResponse:
         stmt = select(self.model).where(self.model.deleted_at.is_(None))
         count_stmt = select(func.count()).select_from(self.model).where(
             self.model.deleted_at.is_(None)
@@ -67,4 +68,6 @@ class BaseRepository(Generic[ModelT]):
 
         total = (await self.session.execute(count_stmt)).scalar_one()
         rows = (await self.session.execute(stmt.offset(offset).limit(limit))).scalars().all()
-        return list(rows), total
+
+        page = offset // limit + 1 if limit > 0 else 1
+        return PaginatedResponse(items=list(rows), total=total, page=page, limit=limit)

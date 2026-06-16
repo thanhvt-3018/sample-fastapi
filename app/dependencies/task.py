@@ -4,7 +4,7 @@ from fastapi import Depends
 from sqlalchemy import select
 from sqlalchemy.ext.asyncio import AsyncSession
 
-from app.core.error_codes import ErrorCode
+from app.core.error_codes import ERROR_MESSAGES, ErrorCode
 from app.core.exceptions import ForbiddenException, NotFoundException
 from app.dependencies.auth import get_current_active_user
 from app.dependencies.database import get_db
@@ -22,7 +22,7 @@ async def get_task(
     task = await TaskRepository(session).get_by_id(task_id)
     if not task:
         raise NotFoundException(
-            message="Task not found",
+            message=ERROR_MESSAGES[ErrorCode.TASK_NOT_FOUND],
             code=ErrorCode.TASK_NOT_FOUND,
         )
     return task
@@ -38,21 +38,21 @@ async def get_task_in_workspace_member(
     task = await TaskRepository(session).get_by_id(task_id)
     if not task or task.project_id != project_id:
         raise NotFoundException(
-            message="Task not found",
+            message=ERROR_MESSAGES[ErrorCode.TASK_NOT_FOUND],
             code=ErrorCode.TASK_NOT_FOUND,
         )
 
     project = await ProjectRepository(session).get_by_id(project_id)
     if not project or project.workspace_id != workspace_id:
         raise NotFoundException(
-            message="Project not found",
+            message=ERROR_MESSAGES[ErrorCode.PROJECT_NOT_FOUND],
             code=ErrorCode.PROJECT_NOT_FOUND,
         )
 
     workspace = await session.get(Workspace, workspace_id)
     if not workspace:
         raise NotFoundException(
-            message="Workspace not found",
+            message=ERROR_MESSAGES[ErrorCode.WORKSPACE_NOT_FOUND],
             code=ErrorCode.WORKSPACE_NOT_FOUND,
         )
 
@@ -68,7 +68,7 @@ async def get_task_in_workspace_member(
 
     if not result.scalar_one_or_none():
         raise ForbiddenException(
-            message="You are not a member of this workspace",
+            message=ERROR_MESSAGES[ErrorCode.INSUFFICIENT_PERMISSIONS],
             code=ErrorCode.INSUFFICIENT_PERMISSIONS,
         )
 

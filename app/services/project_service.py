@@ -6,6 +6,7 @@ from app.core.enums import ProjectStatus
 from app.models.project import Project
 from app.repositories.project_repository import ProjectRepository
 from app.repositories.workspace_repository import WorkspaceRepository
+from app.schemas.common import PaginatedResponse
 from app.schemas.project import ProjectCreate, ProjectResponse, ProjectUpdate
 
 
@@ -27,15 +28,17 @@ class ProjectService:
     async def get(self, project: Project) -> ProjectResponse:
         return ProjectResponse.model_validate(project)
 
-    async def list(self, workspace_id: int, *, offset: int = 0, limit: int = 20) -> tuple[list[ProjectResponse], int]:
-        projects, total = await self._project_repo.paginate(
+    async def list(self, workspace_id: int, *, offset: int = 0, limit: int = 20) -> PaginatedResponse:
+        result = await self._project_repo.paginate(
             offset=offset,
             limit=limit,
             workspace_id=workspace_id,
         )
-        return (
-            [ProjectResponse.model_validate(p) for p in projects],
-            total,
+        return PaginatedResponse(
+            items=[ProjectResponse.model_validate(p) for p in result.items],
+            total=result.total,
+            page=result.page,
+            limit=result.limit,
         )
 
     async def update(self, project: Project, data: ProjectUpdate) -> ProjectResponse:
