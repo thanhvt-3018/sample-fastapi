@@ -13,6 +13,7 @@ from app.models.user import User
 from app.schemas.comment import CommentCreate, CommentResponse
 from app.schemas.common import PaginatedResponse
 from app.schemas.task import TaskCreate, TaskResponse, TaskUpdate
+from app.core.enums import TaskStatus, TaskPriority
 from app.services.task_service import TaskService
 
 router = APIRouter(
@@ -48,11 +49,15 @@ async def list_tasks(
     project_id: int,
     page: int = 1,
     limit: int = 20,
+    status: TaskStatus | None = None,
+    priority: TaskPriority | None = None,
+    assignee_id: int | None = None,
     project: Project = Depends(get_project_in_workspace_member),
     session: AsyncSession = Depends(get_db),
 ) -> PaginatedResponse[TaskResponse]:
     return await TaskService(session).list(
-        project_id, page=page, limit=limit
+        project_id, page=page, limit=limit,
+        status=status, priority=priority, assignee_id=assignee_id
     )
 
 
