@@ -2,7 +2,7 @@ from __future__ import annotations
 
 from datetime import timedelta
 
-from jose import JWTError
+from jose import JWTError  # type: ignore[import-untyped]
 from sqlalchemy.ext.asyncio import AsyncSession
 
 from app.core.config import settings

@@ -19,6 +19,7 @@ class AppException(Exception):
 class ValidationException(AppException):
     def __init__(self, message: str, details: dict | None = None):
         from app.core.error_codes import ErrorCode
+
         super().__init__(
             code=ErrorCode.VALIDATION_ERROR,
             message=message,
@@ -30,6 +31,7 @@ class ValidationException(AppException):
 class UnauthorizedException(AppException):
     def __init__(self, message: str, code: str | None = None):
         from app.core.error_codes import ErrorCode
+
         super().__init__(
             code=code or ErrorCode.UNAUTHORIZED,
             message=message,
@@ -40,6 +42,7 @@ class UnauthorizedException(AppException):
 class ForbiddenException(AppException):
     def __init__(self, message: str, code: str | None = None):
         from app.core.error_codes import ErrorCode
+
         super().__init__(
             code=code or ErrorCode.FORBIDDEN,
             message=message,
@@ -50,6 +53,7 @@ class ForbiddenException(AppException):
 class NotFoundException(AppException):
     def __init__(self, message: str, code: str | None = None):
         from app.core.error_codes import ErrorCode
+
         super().__init__(
             code=code or ErrorCode.NOT_FOUND,
             message=message,
@@ -60,6 +64,7 @@ class NotFoundException(AppException):
 class ConflictException(AppException):
     def __init__(self, message: str, code: str | None = None):
         from app.core.error_codes import ErrorCode
+
         super().__init__(
             code=code or ErrorCode.CONFLICT,
             message=message,
@@ -70,6 +75,7 @@ class ConflictException(AppException):
 class InternalServerException(AppException):
     def __init__(self, message: str = "Internal server error", code: str | None = None):
         from app.core.error_codes import ErrorCode
+
         super().__init__(
             code=code or ErrorCode.INTERNAL_SERVER_ERROR,
             message=message,

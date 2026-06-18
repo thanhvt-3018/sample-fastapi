@@ -20,7 +20,7 @@ async def get_project(
             "id": project_id,
             "workspace_id": workspace_id,
         },
-        load=["workspace", "tasks", "labels"]
+        load=["workspace", "tasks", "labels"],
     )
     if not project:
         raise NotFoundException(

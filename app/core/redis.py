@@ -35,7 +35,9 @@ def get_redis() -> aioredis.Redis:
 
 async def revoke_token(token: str, ttl: timedelta) -> None:
     token_hash = hashlib.sha256(token.encode("utf-8")).hexdigest()
-    await get_redis().setex(f"{REVOKED_PREFIX}{token_hash}", int(ttl.total_seconds()), "")
+    await get_redis().setex(
+        f"{REVOKED_PREFIX}{token_hash}", int(ttl.total_seconds()), ""
+    )
 
 
 async def is_token_revoked(token: str) -> bool:

@@ -14,11 +14,11 @@ class Settings(BaseSettings):
     DEBUG: bool = False
     API_V1_PREFIX: str = "/api/v1"
 
-    DATABASE_URL: str
+    DATABASE_URL: str = "postgresql+asyncpg://user:password@localhost:5432/taskdb"
 
     REDIS_URL: str = "redis://localhost:6380/0"
 
-    JWT_SECRET_KEY: str
+    JWT_SECRET_KEY: str = "your-secret-key"
     JWT_ALGORITHM: str = "HS256"
     JWT_ACCESS_TOKEN_EXPIRE_MINUTES: int = 30
     JWT_REFRESH_TOKEN_EXPIRE_DAYS: int = 7

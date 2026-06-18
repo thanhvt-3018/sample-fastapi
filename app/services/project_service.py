@@ -32,7 +32,9 @@ class ProjectService:
     async def get(self, project: Project) -> ProjectResponse:
         return ProjectResponse.model_validate(project)
 
-    async def list(self, workspace_id: int, *, page: int = 1, limit: int = 20) -> PaginatedResponse:
+    async def list(
+        self, workspace_id: int, *, page: int = 1, limit: int = 20
+    ) -> PaginatedResponse:
         result = await self._project_repo.paginate(
             page=page,
             limit=limit,
@@ -57,7 +59,9 @@ class ProjectService:
         await self.session.commit()
 
     async def archive(self, project: Project) -> ProjectResponse:
-        updated = await self._project_repo.update(project, status=ProjectStatus.ARCHIVED)
+        updated = await self._project_repo.update(
+            project, status=ProjectStatus.ARCHIVED
+        )
         return ProjectResponse.model_validate(updated)
 
     async def unarchive(self, project: Project) -> ProjectResponse:

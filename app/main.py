@@ -81,19 +81,25 @@ def create_app() -> FastAPI:
     @app.exception_handler(StarletteHTTPException)
     async def http_exception_handler(request: Request, exc: StarletteHTTPException):
         code = (
-            ErrorCode.NOT_FOUND if exc.status_code == status.HTTP_404_NOT_FOUND
-            else ErrorCode.FORBIDDEN if exc.status_code == status.HTTP_403_FORBIDDEN
-            else ErrorCode.UNAUTHORIZED if exc.status_code == status.HTTP_401_UNAUTHORIZED
+            ErrorCode.NOT_FOUND
+            if exc.status_code == status.HTTP_404_NOT_FOUND
+            else ErrorCode.FORBIDDEN
+            if exc.status_code == status.HTTP_403_FORBIDDEN
+            else ErrorCode.UNAUTHORIZED
+            if exc.status_code == status.HTTP_401_UNAUTHORIZED
             else ErrorCode.INTERNAL_SERVER_ERROR
         )
         return JSONResponse(
             status_code=exc.status_code,
-            content=ErrorResponse(code=code, message=str(
-                exc.detail)).model_dump(exclude_none=True),
+            content=ErrorResponse(code=code, message=str(exc.detail)).model_dump(
+                exclude_none=True
+            ),
         )
 
     @app.exception_handler(RequestValidationError)
-    async def validation_exception_handler(request: Request, exc: RequestValidationError):
+    async def validation_exception_handler(
+        request: Request, exc: RequestValidationError
+    ):
         errors = []
         for error in exc.errors():
             field = ".".join(str(loc) for loc in error.get("loc", [])[1:])
@@ -133,7 +139,11 @@ def create_app() -> FastAPI:
 
     @app.get("/health", tags=["Health"])
     def health_check() -> dict:
-        return {"status": "ok", "app": settings.APP_NAME, "version": settings.APP_VERSION}
+        return {
+            "status": "ok",
+            "app": settings.APP_NAME,
+            "version": settings.APP_VERSION,
+        }
 
     return app
 

@@ -2,12 +2,11 @@ from __future__ import annotations
 
 from typing import Any
 
-from sqlalchemy import func, select
+from sqlalchemy import select
 from sqlalchemy.orm import selectinload
 
 from app.models.task import Task
 from app.repositories.base import BaseRepository
-from app.schemas.common import PaginatedResponse
 
 
 class TaskRepository(BaseRepository[Task]):
@@ -21,9 +20,11 @@ class TaskRepository(BaseRepository[Task]):
         return instance
 
     async def get_by_id(self, id: int):
-        stmt = select(self.model).where(
-            (self.model.id == id) & (self.model.deleted_at.is_(None))
-        ).options(selectinload(self.model.labels))
+        stmt = (
+            select(self.model)
+            .where((self.model.id == id) & (self.model.deleted_at.is_(None)))
+            .options(selectinload(self.model.labels))
+        )
         result = await self.session.execute(stmt)
         return result.scalars().first()
 

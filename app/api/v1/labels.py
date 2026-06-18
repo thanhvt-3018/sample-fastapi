@@ -16,8 +16,7 @@ from app.schemas.common import PaginatedResponse
 from app.schemas.label import LabelCreate, LabelResponse, LabelUpdate
 from app.services.label_service import LabelService
 
-router = APIRouter(
-    prefix="/projects/{project_id}/labels", tags=["Labels"])
+router = APIRouter(prefix="/projects/{project_id}/labels", tags=["Labels"])
 
 
 @router.post("", response_model=LabelResponse, status_code=status.HTTP_201_CREATED)
@@ -49,7 +48,9 @@ async def update_label(
 
 
 @router.get("/{label_id}", response_model=LabelResponse)
-@workspace_permission([WorkspaceMemberRole.VIEWER, WorkspaceMemberRole.EDITOR, WorkspaceMemberRole.OWNER])
+@workspace_permission(
+    [WorkspaceMemberRole.VIEWER, WorkspaceMemberRole.EDITOR, WorkspaceMemberRole.OWNER]
+)
 async def get_label(
     workspace_id: int,
     project_id: int,
@@ -63,7 +64,9 @@ async def get_label(
 
 
 @router.get("", response_model=PaginatedResponse[LabelResponse])
-@workspace_permission([WorkspaceMemberRole.VIEWER, WorkspaceMemberRole.EDITOR, WorkspaceMemberRole.OWNER])
+@workspace_permission(
+    [WorkspaceMemberRole.VIEWER, WorkspaceMemberRole.EDITOR, WorkspaceMemberRole.OWNER]
+)
 async def list_labels(
     workspace_id: int,
     project_id: int,
@@ -73,9 +76,7 @@ async def list_labels(
     project: Project = Depends(get_project),
     session: AsyncSession = Depends(get_db),
 ) -> PaginatedResponse[LabelResponse]:
-    return await LabelService(session).list(
-        project_id, page=page, limit=limit
-    )
+    return await LabelService(session).list(project_id, page=page, limit=limit)
 
 
 @router.delete("/{label_id}", status_code=status.HTTP_204_NO_CONTENT)
