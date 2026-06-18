@@ -2,6 +2,7 @@ from __future__ import annotations
 
 from sqlalchemy.ext.asyncio import AsyncSession
 
+from app.core.enums import TaskStatus, TaskPriority
 from app.core.error_codes import ERROR_MESSAGES, ErrorCode
 from app.core.exceptions import NotFoundException
 from app.models.task import Task
@@ -46,11 +47,15 @@ class TaskService:
     async def get(self, task: Task) -> TaskResponse:
         return TaskResponse.model_validate(task)
 
-    async def list(self, project_id: int, *, page: int = 1, limit: int = 20) -> PaginatedResponse:
+    async def list(self, project_id: int, *, page: int = 1, limit: int = 20, status: TaskStatus | None = None, priority: TaskPriority | None = None, assignee_id: int | None = None) -> PaginatedResponse:
         result = await self._task_repo.paginate(
             page=page,
             limit=limit,
+            load=["labels"],
             project_id=project_id,
+            status=status,
+            priority=priority,
+            assignee_id=assignee_id,
         )
         return PaginatedResponse(
             items=[TaskResponse.model_validate(t) for t in result.items],

@@ -44,6 +44,11 @@ class WorkspaceService:
             name=data.name,
             owner_id=user_id,
         )
+        await self._member_repo.create(
+            workspace_id=workspace.id,
+            user_id=user_id,
+            role=WorkspaceMemberRole.OWNER,
+        )
         return WorkspaceResponse.model_validate(workspace)
 
     async def get(self, workspace_id: int) -> WorkspaceResponse:

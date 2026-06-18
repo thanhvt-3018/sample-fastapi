@@ -101,12 +101,21 @@ class BaseRepository(Generic[ModelT]):
         limit: int = 20,
         sort_by: str = "created_at",
         order: str = "desc",
+        load: list[str] | None = None,
         **filters: Any,
     ) -> PaginatedResponse:
         stmt = select(self.model).where(self.model.deleted_at.is_(None))
         count_stmt = select(func.count()).select_from(self.model).where(
             self.model.deleted_at.is_(None)
         )
+
+        if load:
+            for relationship in load:
+                rel = getattr(self.model, relationship, None)
+                if rel is None:
+                    raise ValueError(
+                        f"Invalid relationship '{relationship}' for {self.model.__name__}")
+                stmt = stmt.options(selectinload(rel))
 
         for attr, value in filters.items():
             if value is None:
