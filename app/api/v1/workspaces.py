@@ -35,7 +35,9 @@ async def create_workspace(
 
 
 @router.get("/{workspace_id}", response_model=WorkspaceResponse)
-@workspace_permission([WorkspaceMemberRole.VIEWER, WorkspaceMemberRole.EDITOR, WorkspaceMemberRole.OWNER])
+@workspace_permission(
+    [WorkspaceMemberRole.VIEWER, WorkspaceMemberRole.EDITOR, WorkspaceMemberRole.OWNER]
+)
 async def get_workspace_details(
     workspace_id: int,
     workspace: Workspace = Depends(find_workspace),
@@ -52,9 +54,7 @@ async def list_workspaces(
     current_user: User = Depends(get_current_active_user),
     session: AsyncSession = Depends(get_db),
 ) -> PaginatedResponse[WorkspaceResponse]:
-    return await WorkspaceService(session).list(
-        current_user.id, page=page, limit=limit
-    )
+    return await WorkspaceService(session).list(current_user.id, page=page, limit=limit)
 
 
 @router.patch("/{workspace_id}", response_model=WorkspaceResponse)
@@ -80,7 +80,11 @@ async def delete_workspace(
     await WorkspaceService(session).delete(workspace)
 
 
-@router.post("/{workspace_id}/members", response_model=WorkspaceMemberResponse, status_code=status.HTTP_201_CREATED)
+@router.post(
+    "/{workspace_id}/members",
+    response_model=WorkspaceMemberResponse,
+    status_code=status.HTTP_201_CREATED,
+)
 @workspace_permission([WorkspaceMemberRole.OWNER])
 async def invite_member(
     workspace_id: int,
@@ -92,7 +96,9 @@ async def invite_member(
     return await WorkspaceService(session).invite_member(workspace, data)
 
 
-@router.delete("/{workspace_id}/members/{user_id}", status_code=status.HTTP_204_NO_CONTENT)
+@router.delete(
+    "/{workspace_id}/members/{user_id}", status_code=status.HTTP_204_NO_CONTENT
+)
 @workspace_permission([WorkspaceMemberRole.OWNER])
 async def remove_member(
     workspace_id: int,
@@ -104,7 +110,9 @@ async def remove_member(
     await WorkspaceService(session).remove_member(workspace, user_id)
 
 
-@router.put("/{workspace_id}/members/{user_id}/role", response_model=WorkspaceMemberResponse)
+@router.put(
+    "/{workspace_id}/members/{user_id}/role", response_model=WorkspaceMemberResponse
+)
 @workspace_permission([WorkspaceMemberRole.OWNER])
 async def update_member_role(
     workspace_id: int,
@@ -114,11 +122,17 @@ async def update_member_role(
     workspace: Workspace = Depends(find_workspace),
     session: AsyncSession = Depends(get_db),
 ) -> WorkspaceMemberResponse:
-    return await WorkspaceService(session).update_member_role(workspace, user_id, data.role)
+    return await WorkspaceService(session).update_member_role(
+        workspace, user_id, data.role
+    )
 
 
-@router.get("/{workspace_id}/members", response_model=PaginatedResponse[WorkspaceMemberResponse])
-@workspace_permission([WorkspaceMemberRole.VIEWER, WorkspaceMemberRole.EDITOR, WorkspaceMemberRole.OWNER])
+@router.get(
+    "/{workspace_id}/members", response_model=PaginatedResponse[WorkspaceMemberResponse]
+)
+@workspace_permission(
+    [WorkspaceMemberRole.VIEWER, WorkspaceMemberRole.EDITOR, WorkspaceMemberRole.OWNER]
+)
 async def list_members(
     workspace_id: int,
     page: int = 1,

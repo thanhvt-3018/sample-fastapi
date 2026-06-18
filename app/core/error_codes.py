@@ -40,20 +40,16 @@ ERROR_MESSAGES = {
     ErrorCode.CONFLICT: "Resource already exists",
     ErrorCode.UNPROCESSABLE_ENTITY: "Unprocessable entity",
     ErrorCode.INTERNAL_SERVER_ERROR: "Internal server error",
-
     ErrorCode.INVALID_CREDENTIALS: "Invalid email or password",
     ErrorCode.USER_NOT_FOUND: "User not found",
     ErrorCode.USER_ALREADY_EXISTS: "User with this email already exists",
     ErrorCode.USER_INACTIVE: "User account is inactive",
     ErrorCode.INSUFFICIENT_PERMISSIONS: "Insufficient permissions for this action",
-
     ErrorCode.INVALID_TOKEN: "Invalid or malformed token",
     ErrorCode.TOKEN_EXPIRED: "Token has expired",
     ErrorCode.TOKEN_REVOKED: "Token has been revoked",
-
     ErrorCode.INVALID_PASSWORD: "Invalid current password",
     ErrorCode.WEAK_PASSWORD: "Password does not meet security requirements",
-
     ErrorCode.WORKSPACE_NOT_FOUND: "Workspace not found",
     ErrorCode.PROJECT_NOT_FOUND: "Project not found",
     ErrorCode.TASK_NOT_FOUND: "Task not found",

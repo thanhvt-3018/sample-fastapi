@@ -16,8 +16,7 @@ from app.schemas.common import PaginatedResponse
 from app.schemas.project import ProjectCreate, ProjectResponse, ProjectUpdate
 from app.services.project_service import ProjectService
 
-router = APIRouter(
-    prefix="/workspaces/{workspace_id}/projects", tags=["Projects"])
+router = APIRouter(prefix="/workspaces/{workspace_id}/projects", tags=["Projects"])
 
 
 @router.post("", response_model=ProjectResponse, status_code=status.HTTP_201_CREATED)
@@ -33,7 +32,9 @@ async def create_project(
 
 
 @router.get("/{project_id}", response_model=ProjectResponse)
-@workspace_permission([WorkspaceMemberRole.VIEWER, WorkspaceMemberRole.EDITOR, WorkspaceMemberRole.OWNER])
+@workspace_permission(
+    [WorkspaceMemberRole.VIEWER, WorkspaceMemberRole.EDITOR, WorkspaceMemberRole.OWNER]
+)
 async def get_project_endpoint(
     workspace_id: int,
     project_id: int,
@@ -45,7 +46,9 @@ async def get_project_endpoint(
 
 
 @router.get("", response_model=PaginatedResponse[ProjectResponse])
-@workspace_permission([WorkspaceMemberRole.VIEWER, WorkspaceMemberRole.EDITOR, WorkspaceMemberRole.OWNER])
+@workspace_permission(
+    [WorkspaceMemberRole.VIEWER, WorkspaceMemberRole.EDITOR, WorkspaceMemberRole.OWNER]
+)
 async def list_projects(
     workspace_id: int,
     page: int = 1,
@@ -54,9 +57,7 @@ async def list_projects(
     session: AsyncSession = Depends(get_db),
     current_user: User = Depends(get_current_active_user),
 ) -> PaginatedResponse[ProjectResponse]:
-    return await ProjectService(session).list(
-        workspace_id, page=page, limit=limit
-    )
+    return await ProjectService(session).list(workspace_id, page=page, limit=limit)
 
 
 @router.patch("/{project_id}", response_model=ProjectResponse)

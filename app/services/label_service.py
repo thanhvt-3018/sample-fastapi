@@ -1,7 +1,5 @@
 from __future__ import annotations
 
-from app.core.error_codes import ERROR_MESSAGES, ErrorCode
-from app.core.exceptions import NotFoundException
 from app.models.label import Label
 from app.repositories.label_repository import LabelRepository
 from app.schemas.common import PaginatedResponse
@@ -33,10 +31,14 @@ class LabelService:
         await self._label_repo.delete(label)
         await self.session.commit()
 
-    async def list(self, project_id: int, *, page: int = 1, limit: int = 20) -> PaginatedResponse:
-        result = await self._label_repo.paginate(page=page, limit=limit, project_id=project_id)
+    async def list(
+        self, project_id: int, *, page: int = 1, limit: int = 20
+    ) -> PaginatedResponse:
+        result = await self._label_repo.paginate(
+            page=page, limit=limit, project_id=project_id
+        )
         return PaginatedResponse(
-            items=[LabelResponse.model_validate(l) for l in result.items],
+            items=[LabelResponse.model_validate(label) for label in result.items],
             total=result.total,
             page=result.page,
             limit=result.limit,

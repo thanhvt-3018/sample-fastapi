@@ -6,7 +6,7 @@ from sqlalchemy import Enum as SAEnum, ForeignKey, String, Text
 from sqlalchemy.orm import Mapped, mapped_column, relationship
 
 from app.core.enums import ProjectStatus
-from app.models.base import Base, TimestampMixin
+from app.models.base import BaseModel
 
 if TYPE_CHECKING:
     from app.models.workspace import Workspace
@@ -14,20 +14,20 @@ if TYPE_CHECKING:
     from app.models.label import Label
 
 
-class Project(Base, TimestampMixin):
+class Project(BaseModel):
     __tablename__ = "projects"
 
-    id: Mapped[int] = mapped_column(primary_key=True)
-    workspace_id: Mapped[int] = mapped_column(ForeignKey(
-        "workspaces.id", ondelete="CASCADE"), nullable=False, index=True)
+    workspace_id: Mapped[int] = mapped_column(
+        ForeignKey("workspaces.id", ondelete="CASCADE"), nullable=False, index=True
+    )
     name: Mapped[str] = mapped_column(String(100), nullable=False)
     description: Mapped[str | None] = mapped_column(Text, nullable=True)
     status: Mapped[ProjectStatus] = mapped_column(
-        SAEnum(ProjectStatus, name="project_status", native_enum=False), default=ProjectStatus.ACTIVE, nullable=False)
+        SAEnum(ProjectStatus, name="project_status", native_enum=False),
+        default=ProjectStatus.ACTIVE,
+        nullable=False,
+    )
 
-    workspace: Mapped[Workspace] = relationship(
-        back_populates="projects", lazy="raise")
-    tasks: Mapped[list[Task]] = relationship(
-        back_populates="project", lazy="raise")
-    labels: Mapped[list[Label]] = relationship(
-        back_populates="project", lazy="raise")
+    workspace: Mapped[Workspace] = relationship(back_populates="projects", lazy="raise")
+    tasks: Mapped[list[Task]] = relationship(back_populates="project", lazy="raise")
+    labels: Mapped[list[Label]] = relationship(back_populates="project", lazy="raise")

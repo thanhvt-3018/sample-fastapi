@@ -8,10 +8,10 @@ from sqlalchemy.exc import InvalidRequestError
 from sqlalchemy.ext.asyncio import AsyncSession
 from sqlalchemy.orm import RelationshipProperty, selectinload
 
-from app.models.base import Base
+from app.models.base import BaseModel
 from app.schemas.common import PaginatedResponse
 
-ModelT = TypeVar("ModelT", bound=Base)
+ModelT = TypeVar("ModelT", bound=BaseModel)
 
 
 class BaseRepository(Generic[ModelT]):
@@ -41,7 +41,8 @@ class BaseRepository(Generic[ModelT]):
                 col = getattr(self.model, attr, None)
                 if col is None:
                     raise ValueError(
-                        f"Invalid filter field '{attr}' for {self.model.__name__}")
+                        f"Invalid filter field '{attr}' for {self.model.__name__}"
+                    )
                 stmt = stmt.where(col == value)
 
         if load:
@@ -49,7 +50,8 @@ class BaseRepository(Generic[ModelT]):
                 rel = getattr(self.model, relationship, None)
                 if rel is None:
                     raise ValueError(
-                        f"Invalid relationship '{relationship}' for {self.model.__name__}")
+                        f"Invalid relationship '{relationship}' for {self.model.__name__}"
+                    )
                 stmt = stmt.options(selectinload(rel))
 
         result = await self.session.execute(stmt)
@@ -105,8 +107,10 @@ class BaseRepository(Generic[ModelT]):
         **filters: Any,
     ) -> PaginatedResponse:
         stmt = select(self.model).where(self.model.deleted_at.is_(None))
-        count_stmt = select(func.count()).select_from(self.model).where(
-            self.model.deleted_at.is_(None)
+        count_stmt = (
+            select(func.count())
+            .select_from(self.model)
+            .where(self.model.deleted_at.is_(None))
         )
 
         if load:
@@ -114,7 +118,8 @@ class BaseRepository(Generic[ModelT]):
                 rel = getattr(self.model, relationship, None)
                 if rel is None:
                     raise ValueError(
-                        f"Invalid relationship '{relationship}' for {self.model.__name__}")
+                        f"Invalid relationship '{relationship}' for {self.model.__name__}"
+                    )
                 stmt = stmt.options(selectinload(rel))
 
         for attr, value in filters.items():
@@ -123,14 +128,16 @@ class BaseRepository(Generic[ModelT]):
             col = getattr(self.model, attr, None)
             if col is None:
                 raise ValueError(
-                    f"Invalid filter field '{attr}' for {self.model.__name__}")
+                    f"Invalid filter field '{attr}' for {self.model.__name__}"
+                )
             stmt = stmt.where(col == value)
             count_stmt = count_stmt.where(col == value)
 
         sort_col = getattr(self.model, sort_by, None)
         if sort_col is None:
             raise ValueError(
-                f"Invalid sort field '{sort_by}' for {self.model.__name__}")
+                f"Invalid sort field '{sort_by}' for {self.model.__name__}"
+            )
 
         if order.lower() == "desc":
             stmt = stmt.order_by(sort_col.desc())
@@ -139,6 +146,10 @@ class BaseRepository(Generic[ModelT]):
 
         total = (await self.session.execute(count_stmt)).scalar_one()
         offset = (page - 1) * limit
-        rows = (await self.session.execute(stmt.offset(offset).limit(limit))).scalars().all()
+        rows = (
+            (await self.session.execute(stmt.offset(offset).limit(limit)))
+            .scalars()
+            .all()
+        )
 
         return PaginatedResponse(items=list(rows), total=total, page=page, limit=limit)

@@ -1,5 +1,7 @@
 from __future__ import annotations
 
+from typing import cast
+
 from sqlalchemy import select, func
 from sqlalchemy.ext.asyncio import AsyncSession
 
@@ -60,7 +62,9 @@ class WorkspaceService:
             )
         return WorkspaceResponse.model_validate(workspace)
 
-    async def list(self, user_id: int, *, page: int = 1, limit: int = 20) -> PaginatedResponse:
+    async def list(
+        self, user_id: int, *, page: int = 1, limit: int = 20
+    ) -> PaginatedResponse:
         result = await self._workspace_repo.paginate(
             page=page,
             limit=limit,
@@ -74,7 +78,9 @@ class WorkspaceService:
             limit=result.limit,
         )
 
-    async def update(self, workspace: Workspace, data: WorkspaceUpdate) -> WorkspaceResponse:
+    async def update(
+        self, workspace: Workspace, data: WorkspaceUpdate
+    ) -> WorkspaceResponse:
         updated = await self._workspace_repo.update(
             workspace,
             **data.model_dump(exclude_unset=True),
@@ -164,18 +170,24 @@ class WorkspaceService:
         updated = await self._member_repo.update(member_obj, role=role)
         return WorkspaceMemberResponse.model_validate(updated)
 
-    async def get_members(self, workspace: Workspace, *, page: int = 1, limit: int = 20) -> PaginatedResponse[WorkspaceMemberResponse]:
+    async def get_members(
+        self, workspace: Workspace, *, page: int = 1, limit: int = 20
+    ) -> PaginatedResponse[WorkspaceMemberResponse]:
         query = select(WorkspaceMember).where(
             (WorkspaceMember.workspace_id == workspace.id)
             & (WorkspaceMember.deleted_at.is_(None))
         )
 
-        count_query = select(func.count()).select_from(WorkspaceMember).where(
-            (WorkspaceMember.workspace_id == workspace.id)
-            & (WorkspaceMember.deleted_at.is_(None))
+        count_query = (
+            select(func.count())
+            .select_from(WorkspaceMember)
+            .where(
+                (WorkspaceMember.workspace_id == workspace.id)
+                & (WorkspaceMember.deleted_at.is_(None))
+            )
         )
         count_result = await self.session.execute(count_query)
-        total = count_result.scalar()
+        total = cast(int, count_result.scalar()) or 0
 
         offset = (page - 1) * limit
         query = query.offset(offset).limit(limit)

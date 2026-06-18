@@ -7,7 +7,6 @@ from sqlalchemy.ext.asyncio import AsyncSession
 from app.core.error_codes import ErrorCode
 from app.core.exceptions import NotFoundException, UnauthorizedException
 from app.core.security import hash_password, verify_password
-from app.models.user import User
 from app.repositories.user_repository import UserRepository
 from app.schemas.user import ChangePasswordRequest, UserResponse, UserUpdate
 

@@ -15,8 +15,7 @@ async def find_workspace(
     session: AsyncSession = Depends(get_db),
 ) -> Workspace:
     workspace = await WorkspaceRepository(session).get_one(
-        conditions={"id": workspace_id},
-        load=["projects", "members"]
+        conditions={"id": workspace_id}, load=["projects", "members"]
     )
     if not workspace:
         raise NotFoundException(

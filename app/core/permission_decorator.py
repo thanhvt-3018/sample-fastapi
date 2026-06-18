@@ -1,7 +1,7 @@
 from __future__ import annotations
 
 from functools import wraps
-from typing import Callable
+from typing import Any, Callable, cast
 
 from sqlalchemy import select
 from sqlalchemy.ext.asyncio import AsyncSession
@@ -44,21 +44,24 @@ async def _get_user_workspace_role(
     return member.role
 
 
-def workspace_permission(allowed_roles: list[str]):
+def workspace_permission(allowed_roles: list[str]) -> Callable:
     allowed_role_set = set(WorkspaceMemberRole[r] for r in allowed_roles)
 
-    def decorator(func: Callable):
+    def decorator(func: Callable) -> Callable:
         @wraps(func)
-        async def wrapper(*args, **kwargs):
-            current_user: User = kwargs.get("current_user")
-            session: AsyncSession = kwargs.get("session")
-            workspace_id: int = kwargs.get("workspace_id")
+        async def wrapper(*args: Any, **kwargs: Any) -> Any:
+            current_user: User | None = kwargs.get("current_user")
+            session: AsyncSession | None = kwargs.get("session")
+            workspace_id: int | None = kwargs.get("workspace_id")
 
             if not current_user or not session or workspace_id is None:
                 raise ForbiddenException(
                     message="Missing required dependencies",
                     code=ErrorCode.INSUFFICIENT_PERMISSIONS,
                 )
+
+            current_user = cast(User, current_user)
+            session = cast(AsyncSession, session)
 
             if current_user.role == UserRole.ADMIN:
                 return await func(*args, **kwargs)
@@ -73,16 +76,25 @@ def workspace_permission(allowed_roles: list[str]):
             return await func(*args, **kwargs)
 
         return wrapper
+
     return decorator
 
 
-def user_permission(allowed_roles: list[str]):
+def user_permission(allowed_roles: list[str]) -> Callable:
     allowed_role_set = set(UserRole[r] for r in allowed_roles)
 
-    def decorator(func: Callable):
+    def decorator(func: Callable) -> Callable:
         @wraps(func)
-        async def wrapper(*args, **kwargs):
-            current_user: User = kwargs.get("current_user")
+        async def wrapper(*args: Any, **kwargs: Any) -> Any:
+            current_user: User | None = kwargs.get("current_user")
+
+            if current_user is None or not isinstance(current_user, User):
+                raise ForbiddenException(
+                    message="Missing required dependencies",
+                    code=ErrorCode.INSUFFICIENT_PERMISSIONS,
+                )
+
+            current_user = cast(User, current_user)
 
             if current_user.role not in allowed_role_set:
                 raise ForbiddenException(
@@ -92,4 +104,5 @@ def user_permission(allowed_roles: list[str]):
             return await func(*args, **kwargs)
 
         return wrapper
+
     return decorator

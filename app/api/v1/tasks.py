@@ -1,6 +1,5 @@
 from __future__ import annotations
 
-import json
 from fastapi import APIRouter, Depends, status
 from sqlalchemy.ext.asyncio import AsyncSession
 
@@ -20,7 +19,8 @@ from app.core.redis import get_redis, get_task_cache_key, invalidate_project_tas
 from app.services.task_service import TaskService
 
 router = APIRouter(
-    prefix="/workspaces/{workspace_id}/projects/{project_id}/tasks", tags=["Tasks"])
+    prefix="/workspaces/{workspace_id}/projects/{project_id}/tasks", tags=["Tasks"]
+)
 
 
 @router.post("", response_model=TaskResponse, status_code=status.HTTP_201_CREATED)
@@ -39,7 +39,9 @@ async def create_task(
 
 
 @router.get("/{task_id}", response_model=TaskResponse)
-@workspace_permission([WorkspaceMemberRole.VIEWER, WorkspaceMemberRole.EDITOR, WorkspaceMemberRole.OWNER])
+@workspace_permission(
+    [WorkspaceMemberRole.VIEWER, WorkspaceMemberRole.EDITOR, WorkspaceMemberRole.OWNER]
+)
 async def get_task_endpoint(
     workspace_id: int,
     project_id: int,
@@ -52,7 +54,9 @@ async def get_task_endpoint(
 
 
 @router.get("", response_model=PaginatedResponse[TaskResponse])
-@workspace_permission([WorkspaceMemberRole.VIEWER, WorkspaceMemberRole.EDITOR, WorkspaceMemberRole.OWNER])
+@workspace_permission(
+    [WorkspaceMemberRole.VIEWER, WorkspaceMemberRole.EDITOR, WorkspaceMemberRole.OWNER]
+)
 async def list_tasks(
     workspace_id: int,
     project_id: int,
@@ -66,7 +70,8 @@ async def list_tasks(
     session: AsyncSession = Depends(get_db),
 ) -> PaginatedResponse[TaskResponse]:
     cache_key = get_task_cache_key(
-        project_id, page, limit, status, priority, assignee_id)
+        project_id, page, limit, status, priority, assignee_id
+    )
     redis = get_redis()
 
     cached = await redis.get(cache_key)
@@ -74,8 +79,12 @@ async def list_tasks(
         return PaginatedResponse.model_validate_json(cached)
 
     result = await TaskService(session).list(
-        project_id, page=page, limit=limit,
-        status=status, priority=priority, assignee_id=assignee_id
+        project_id,
+        page=page,
+        limit=limit,
+        status=status,
+        priority=priority,
+        assignee_id=assignee_id,
     )
 
     await redis.setex(cache_key, 3600, result.model_dump_json())
@@ -144,8 +153,14 @@ async def remove_label_from_task(
     return result
 
 
-@router.post("/{task_id}/comments", response_model=CommentResponse, status_code=status.HTTP_201_CREATED)
-@workspace_permission([WorkspaceMemberRole.VIEWER, WorkspaceMemberRole.EDITOR, WorkspaceMemberRole.OWNER])
+@router.post(
+    "/{task_id}/comments",
+    response_model=CommentResponse,
+    status_code=status.HTTP_201_CREATED,
+)
+@workspace_permission(
+    [WorkspaceMemberRole.VIEWER, WorkspaceMemberRole.EDITOR, WorkspaceMemberRole.OWNER]
+)
 async def add_comment_to_task(
     workspace_id: int,
     project_id: int,
@@ -158,8 +173,12 @@ async def add_comment_to_task(
     return await TaskService(session).add_comment(task, current_user.id, data)
 
 
-@router.delete("/{task_id}/comments/{comment_id}", status_code=status.HTTP_204_NO_CONTENT)
-@workspace_permission([WorkspaceMemberRole.VIEWER, WorkspaceMemberRole.EDITOR, WorkspaceMemberRole.OWNER])
+@router.delete(
+    "/{task_id}/comments/{comment_id}", status_code=status.HTTP_204_NO_CONTENT
+)
+@workspace_permission(
+    [WorkspaceMemberRole.VIEWER, WorkspaceMemberRole.EDITOR, WorkspaceMemberRole.OWNER]
+)
 async def remove_comment_from_task(
     workspace_id: int,
     project_id: int,

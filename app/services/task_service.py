@@ -23,7 +23,9 @@ class TaskService:
         self._comment_repo = CommentRepository(session)
         self.session = session
 
-    async def create(self, project_id: int, created_by: int, data: TaskCreate) -> TaskResponse:
+    async def create(
+        self, project_id: int, created_by: int, data: TaskCreate
+    ) -> TaskResponse:
         if data.assignee_id:
             assignee = await self._user_repo.get_by_id(data.assignee_id)
             if not assignee:
@@ -47,7 +49,16 @@ class TaskService:
     async def get(self, task: Task) -> TaskResponse:
         return TaskResponse.model_validate(task)
 
-    async def list(self, project_id: int, *, page: int = 1, limit: int = 20, status: TaskStatus | None = None, priority: TaskPriority | None = None, assignee_id: int | None = None) -> PaginatedResponse:
+    async def list(
+        self,
+        project_id: int,
+        *,
+        page: int = 1,
+        limit: int = 20,
+        status: TaskStatus | None = None,
+        priority: TaskPriority | None = None,
+        assignee_id: int | None = None,
+    ) -> PaginatedResponse:
         result = await self._task_repo.paginate(
             page=page,
             limit=limit,
@@ -116,7 +127,9 @@ class TaskService:
         updated = await self._task_repo.remove_label(task, label)
         return TaskResponse.model_validate(updated)
 
-    async def add_comment(self, task: Task, author_id: int, data: CommentCreate) -> CommentResponse:
+    async def add_comment(
+        self, task: Task, author_id: int, data: CommentCreate
+    ) -> CommentResponse:
         comment = await self._comment_repo.create(
             task_id=task.id,
             author_id=author_id,

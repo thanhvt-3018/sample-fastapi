@@ -2,7 +2,7 @@ from __future__ import annotations
 
 from fastapi import Cookie, Depends
 from fastapi.security import HTTPBearer, HTTPAuthorizationCredentials
-from jose import JWTError
+from jose import JWTError  # type: ignore[import-untyped]
 from sqlalchemy.ext.asyncio import AsyncSession
 
 from app.core.enums import UserRole
@@ -17,7 +17,9 @@ from app.repositories.user_repository import UserRepository
 http_bearer = HTTPBearer(description="JWT Bearer token", auto_error=False)
 
 
-async def get_token_from_bearer(credentials: HTTPAuthorizationCredentials | None = Depends(http_bearer)) -> str:
+async def get_token_from_bearer(
+    credentials: HTTPAuthorizationCredentials | None = Depends(http_bearer),
+) -> str:
     if credentials is None:
         raise UnauthorizedException(
             message="Authorization header missing",
@@ -26,7 +28,9 @@ async def get_token_from_bearer(credentials: HTTPAuthorizationCredentials | None
     return credentials.credentials
 
 
-async def get_refresh_token_from_cookie(refresh_token: str | None = Cookie(None)) -> str:
+async def get_refresh_token_from_cookie(
+    refresh_token: str | None = Cookie(None),
+) -> str:
     if not refresh_token:
         raise UnauthorizedException(
             message="Refresh token not found in cookie",
